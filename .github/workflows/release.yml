@@ -1,9 +1,11 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v*.*.*"
   release:
-    types: [published]
-
+    types: [ published ]
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
