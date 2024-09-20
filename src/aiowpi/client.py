@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from .error import WPIGetInstanceError, WPIInstanceInitError, check_wg_response
 import sys
 
+
 class WPIClient:
     _instances = {}
     _lock = threading.Lock()
@@ -32,9 +33,9 @@ class WPIClient:
         self.encyclopedia = WPIEncyclopedia(self.application_id, self.limiter)
         self.warships = WPIWarships(self.application_id, self.limiter)
         self.clans = WPIClans(self.application_id, self.limiter)
-    
+
     @classmethod
-    async def get_instance(cls, application_id: str) -> 'WPIClient':
+    async def get_instance(cls, application_id: str) -> "WPIClient":
         if instance := cls._instances.get(application_id, None):
             return instance
         else:
@@ -131,11 +132,10 @@ class WPIPlayer(WPIBase):
 
                 async with session.get(
                     api_uri, params=payload, raise_for_status=True
-                    ) as response:
-                        resp_json = await response.json()
-                        await check_wg_response(resp_json)
-                        return tuple(resp_json["data"].values())
-
+                ) as response:
+                    resp_json = await response.json()
+                    await check_wg_response(resp_json)
+                    return tuple(resp_json["data"].values())
 
 
 class WPIEncyclopedia(WPIBase):
@@ -148,7 +148,7 @@ class WPIEncyclopedia(WPIBase):
         nation: Optional[Union[str, Iterable[str]]] = None,
         page_no: Optional[int] = None,
         ship_id: Optional[Union[str, Iterable[int], int]] = None,
-        ship_type: Optional[Union[str, Iterable[str]]] = None
+        ship_type: Optional[Union[str, Iterable[str]]] = None,
     ) -> Optional[Tuple[int, Tuple]]:
         assert server
 
@@ -194,12 +194,12 @@ class WPIEncyclopedia(WPIBase):
                 ) as response:
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
-                    
+
                     return (
                         resp_json["meta"]["page_total"],
-                        tuple( resp_json["data"].values())
+                        tuple(resp_json["data"].values()),
                     )
-                
+
     async def warships(
         self,
         server: str,
@@ -209,7 +209,7 @@ class WPIEncyclopedia(WPIBase):
         nation: Optional[Union[str, Iterable[str]]] = None,
         ship_id: Optional[Union[str, Iterable[int], int]] = None,
         ship_type: Optional[Union[str, Iterable[str]]] = None,
-        page_no: Optional[int] = None
+        page_no: Optional[int] = None,
     ) -> Tuple[Dict]:
         if page_no != -1:
             _, data = await self._1page_warships(
@@ -230,7 +230,14 @@ class WPIEncyclopedia(WPIBase):
                         tasks.append(
                             tg.create_task(
                                 self._1page_warships(
-                                    server, fields, language, limit, nation, page, ship_id, ship_type
+                                    server,
+                                    fields,
+                                    language,
+                                    limit,
+                                    nation,
+                                    page,
+                                    ship_id,
+                                    ship_type,
                                 )
                             )
                         )
@@ -239,7 +246,14 @@ class WPIEncyclopedia(WPIBase):
                 for page in range(2, total_pages + 1):
                     tasks.append(
                         self._1page_warships(
-                            server, fields, language, limit, nation, page, ship_id, ship_type
+                            server,
+                            fields,
+                            language,
+                            limit,
+                            nation,
+                            page,
+                            ship_id,
+                            ship_type,
                         )
                     )
                 all_pages_data = await asyncio.gather(*tasks)
@@ -248,6 +262,7 @@ class WPIEncyclopedia(WPIBase):
             all_data.extend(data for _, data in all_pages_data)
 
             return tuple(all_data)
+
 
 class WPIWarships(WPIBase):
     async def _1statistics(
@@ -296,7 +311,9 @@ class WPIWarships(WPIBase):
                         ship_id = ",".join(map(str, ship_id))
                     payload["ship_id"] = ship_id
 
-                async with session.get(api_uri, params=payload, raise_for_status=True) as response:
+                async with session.get(
+                    api_uri, params=payload, raise_for_status=True
+                ) as response:
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
@@ -319,36 +336,45 @@ class WPIWarships(WPIBase):
         if isinstance(account_id, Iterable):
             if sys.version_info >= (3, 11):
                 async with asyncio.TaskGroup() as tg:
-                    tasks = [tg.create_task(
+                    tasks = [
+                        tg.create_task(
+                            self._1statistics(
+                                server=server,
+                                account_id=acc_id,
+                                application_id=self.application_id,
+                                access_token=access_token,
+                                extra=extra,
+                                fields=fields,
+                                in_garage=in_garage,
+                                language=language,
+                                ship_id=ship_id,
+                            )
+                        )
+                        for acc_id in account_id
+                    ]
+                results = tuple(t.result() for t in tasks)
+            else:
+                tasks = [
+                    asyncio.create_task(
                         self._1statistics(
                             server=server,
                             account_id=acc_id,
-                            application_id=self.application_id,
+                            application_id=application_id,
                             access_token=access_token,
                             extra=extra,
                             fields=fields,
                             in_garage=in_garage,
                             language=language,
                             ship_id=ship_id,
-                        )) for acc_id in account_id]
-                results = tuple(t.result() for t in tasks)
-            else:
-                tasks = [asyncio.create_task(
-                    self._1statistics(
-                        server=server,
-                        account_id=acc_id,
-                        application_id=application_id,
-                        access_token=access_token,
-                        extra=extra,
-                        fields=fields,
-                        in_garage=in_garage,
-                        language=language,
-                        ship_id=ship_id,
-                    )) for acc_id in account_id]
+                        )
+                    )
+                    for acc_id in account_id
+                ]
                 responses = await asyncio.gather(*tasks)
                 results = tuple(responses)
 
         return results
+
 
 class WPIClans(WPIBase):
     async def search(
@@ -358,7 +384,7 @@ class WPIClans(WPIBase):
         fields: Optional[Union[str, Iterable[str]]] = None,
         language: Optional[str] = None,
         limit: Optional[int] = None,
-        page_no: Optional[int] = None
+        page_no: Optional[int] = None,
     ) -> Dict:
         assert server
         assert search and len(search) >= 2, "Search term must be at least 2 characters."
@@ -387,11 +413,22 @@ class WPIClans(WPIBase):
                     assert page_no >= 1, "Page number must be 1 or greater."
                     payload["page_no"] = page_no
 
-                async with session.get(api_uri, params=payload, raise_for_status=True) as response:
+                async with session.get(
+                    api_uri, params=payload, raise_for_status=True
+                ) as response:
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
-                    return tuple((clan["clan_id"], clan["tag"], clan["name"], clan["created_at"], clan["members_count"]) for clan in resp_json["data"])
+                    return tuple(
+                        (
+                            clan["clan_id"],
+                            clan["tag"],
+                            clan["name"],
+                            clan["created_at"],
+                            clan["members_count"],
+                        )
+                        for clan in resp_json["data"]
+                    )
 
     async def details(
         self,
@@ -399,7 +436,7 @@ class WPIClans(WPIBase):
         clan_id: Union[int, Iterable[int], str] = None,
         extra: Optional[Union[str, Iterable[str]]] = None,
         fields: Optional[Union[str, Iterable[str]]] = None,
-        language: Optional[str] = None
+        language: Optional[str] = None,
     ) -> Dict:
         assert server
         assert clan_id
@@ -409,7 +446,11 @@ class WPIClans(WPIBase):
                 api_uri = "/wows/clans/info/"
                 payload = {
                     "application_id": self.application_id,
-                    "clan_id": clan_id if isinstance(clan_id, int) or isinstance(clan_id, str) else ",".join(map(str, clan_id)),
+                    "clan_id": (
+                        clan_id
+                        if isinstance(clan_id, int) or isinstance(clan_id, str)
+                        else ",".join(map(str, clan_id))
+                    ),
                 }
 
                 if extra:
@@ -425,11 +466,19 @@ class WPIClans(WPIBase):
                 if language:
                     payload["language"] = language
 
-                async with session.get(api_uri, params=payload, raise_for_status=True) as response:
+                async with session.get(
+                    api_uri, params=payload, raise_for_status=True
+                ) as response:
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
                     return tuple(
-                        (clan["clan_id"], clan["tag"], clan["name"], clan["created_at"], clan["members_count"])
+                        (
+                            clan["clan_id"],
+                            clan["tag"],
+                            clan["name"],
+                            clan["created_at"],
+                            clan["members_count"],
+                        )
                         for clan in resp_json["data"].values()
                     )
