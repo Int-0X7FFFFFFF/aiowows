@@ -1,6 +1,7 @@
 # AIOWPI
 
 ## aiohttp based world of warship api
+### [中文说明](https://github.com/Int-0X7FFFFFFF/aiowpi/blob/master/README_zh.md)
 
 [![Python 3.8](https://img.shields.io/badge/Python-3.8_|_3.9_|_3.10_|_3.11_|_3.12-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/downloads/release/python-370/)
 [![GitHub file size in bytes](https://img.shields.io/github/languages/code-size/Int-0X7FFFFFFF/aiowpi?label=Size&logo=hack-the-box&logoColor=white&style=flat-square)](https://github.com/ArkoClub/async-pixiv)
