@@ -30,3 +30,7 @@ dependencies = [
     "aiohttp",
     "aiolimiter",
 ]
+
+[project.urls]
+homepage = "https://github.com/Int-0X7FFFFFFF/aiowpi"
+repository = "https://github.com/Int-0X7FFFFFFF/aiowpi"
