@@ -82,3 +82,5 @@ async def main():
     print(player_info)
 asyncio.run(main())
 ```
+
+### [reference](https://github.com/ArkoClub/async-pixiv/blob/main/README.md)
