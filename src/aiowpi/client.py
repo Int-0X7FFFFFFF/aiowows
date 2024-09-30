@@ -88,7 +88,7 @@ class WPIPlayer(WPIBase):
                         ((i["nickname"], i["account_id"]) for i in resp_json["data"])
                     )
 
-    async def person_data(
+    async def personal_data(
         self,
         server: str,
         account_id: Union[int, Iterable[int], str] = None,
