@@ -473,12 +473,5 @@ class WPIClans(WPIBase):
                     await check_wg_response(resp_json)
 
                     return tuple(
-                        (
-                            clan["clan_id"],
-                            clan["tag"],
-                            clan["name"],
-                            clan["created_at"],
-                            clan["members_count"],
-                        )
-                        for clan in resp_json["data"].values()
+                        clan for clan in resp_json["data"].values()
                     )
