@@ -341,7 +341,6 @@ class WPIWarships(WPIBase):
                             self._1statistics(
                                 server=server,
                                 account_id=acc_id,
-                                application_id=self.application_id,
                                 access_token=access_token,
                                 extra=extra,
                                 fields=fields,
