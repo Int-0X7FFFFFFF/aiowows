@@ -102,7 +102,7 @@ class WPIPlayer(WPIBase):
 
         async with self.limiter:
             async with aiohttp.ClientSession(server) as session:
-                api_uri = "/account/info/"
+                api_uri = "/wows/account/info/"
                 payload = {
                     "application_id": self.application_id,
                 }
