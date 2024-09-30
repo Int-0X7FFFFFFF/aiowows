@@ -317,7 +317,7 @@ class WPIWarships(WPIBase):
                     resp_json = await response.json()
                     await check_wg_response(resp_json)
 
-                    return resp_json["data"][str(account_id)]
+                    return resp_json["data"].get(str(account_id), None)
 
     async def statistics(
         self,
